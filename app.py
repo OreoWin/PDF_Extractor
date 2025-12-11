@@ -2,6 +2,7 @@ import streamlit as st
 import pdfplumber
 from io import BytesIO
 import re
+import json
 from collections import Counter
 
 # Page configuration
@@ -13,7 +14,7 @@ st.set_page_config(
 
 # Title and description
 st.title("Rebecca's PDF Text Extractor")
-st.markdown("Upload a PDF file to extract text for FREE!! \n *only works on PDFs that contain actual digital text.*")
+st.markdown("Upload a PDF file to extract text for FREE!! \n ONLY works on PDFs that contain actual digital text.")
 
 # Initialize session state
 if 'extracted_text' not in st.session_state:
@@ -32,7 +33,7 @@ with st.sidebar:
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.header("📤 Upload PDF")
+    st.header("Upload PDF")
     
     # File uploader
     uploaded_file = st.file_uploader(
@@ -58,23 +59,28 @@ with col1:
         st.subheader("Page Range Selection")
         
         if st.session_state.total_pages > 0:
-            page_range = st.slider(
-                "Select page range to extract",
-                min_value=1,
-                max_value=st.session_state.total_pages,
-                value=(1, st.session_state.total_pages),
-                help=f"Select pages 1 to {st.session_state.total_pages}"
-            )
-            
-            start_page, end_page = page_range
-            
-            # Validate page range
-            if start_page > end_page:
-                st.error("❌ Invalid page range: Start page must be less than or equal to end page")
-                st.stop()
+            if st.session_state.total_pages == 1:
+                st.info("Single-page PDF detected. Page 1 will be extracted.")
+                start_page = end_page = 1
+                button_label = "🔍 Extract Text"
+            else:
+                page_range = st.slider(
+                    "Select page range to extract",
+                    min_value=1,
+                    max_value=st.session_state.total_pages,
+                    value=(1, st.session_state.total_pages),
+                    help=f"Select pages 1 to {st.session_state.total_pages}"
+                )
+                start_page, end_page = page_range
+                button_label = "🔍 Extract Text"
+                
+                # Validate page range
+                if start_page > end_page:
+                    st.error("❌ Invalid page range: Start page must be less than or equal to end page")
+                    st.stop()
             
             # Extract button
-            if st.button("🔍 Extract Text", type="primary", use_container_width=True):
+            if st.button(button_label, type="primary", use_container_width=True):
                 with st.spinner("Extracting text from PDF..."):
                     try:
                         # Reset file pointer
@@ -112,7 +118,7 @@ with col1:
                             if pages_with_no_text:
                                 st.warning(f"⚠️ Pages with no extractable text: {', '.join(map(str, pages_with_no_text))}")
                             
-                            st.success(f"✅ Successfully extracted text from pages {start_page} to {end_page}!")
+                            st.success(f"Successfully extracted text from pages {start_page} to {end_page}!")
                     
                     except Exception as e:
                         st.error(f"❌ Error during extraction: {str(e)}")
@@ -130,11 +136,10 @@ with col2:
             preview_text += "\n\n... (text truncated for preview)"
         
         st.text_area(
-            "Preview (first 5000 characters)",
+            "Preview (select and copy enabled)",
             value=preview_text,
             height=400,
-            disabled=True,
-            help="This is a preview. Use the download button to get the full text."
+            help="Select any portion to copy. Preview is limited to the first 5000 characters."
         )
         
         # Download button
@@ -145,6 +150,35 @@ with col2:
             mime="text/plain",
             use_container_width=True,
             type="primary"
+        )
+
+        # Copy full text to clipboard (client-side)
+        copy_text = json.dumps(st.session_state.extracted_text)
+        st.components.v1.html(
+            f"""
+            <div style="display:flex;justify-content:flex-start;gap:8px;margin:8px 0;">
+              <button id="copy-all-btn" style="padding:8px 12px;border:none;border-radius:4px;background:#0f8bff;color:white;cursor:pointer;">
+                📋 Copy all extracted text
+              </button>
+              <span id="copy-status" style="font-size:14px;color:#444;"></span>
+            </div>
+            <script>
+              const data = {copy_text};
+              const btn = document.getElementById("copy-all-btn");
+              const status = document.getElementById("copy-status");
+              btn.onclick = async () => {{
+                try {{
+                  await navigator.clipboard.writeText(data);
+                  status.textContent = "Copied!";
+                  setTimeout(() => status.textContent = "", 2000);
+                }} catch (err) {{
+                  status.textContent = "Copy failed";
+                  console.error(err);
+                }}
+              }};
+            </script>
+            """,
+            height=60
         )
         
         # Statistics section
@@ -174,14 +208,14 @@ with col2:
                 st.metric("Page Count", page_count)
             
             # Word frequency analysis
-            st.subheader("🔤 Top 10 Most Frequent Words")
+            st.subheader("Top 10 Most Frequent Words")
             
             # Simple stopwords list
             stopwords = {
                 'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with',
                 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been', 'be', 'have', 'has', 'had',
                 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must',
-                'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they',
+                'can', 'this', 'that', 'these', 'those', 'i', 'you','yours','yourself','himself','herself','itself','themselves', 'he', 'she', 'it', 'we', 'they',
                 'what', 'which', 'who', 'when', 'where', 'why', 'how', 'all', 'each', 'every',
                 'both', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only',
                 'own', 'same', 'so', 'than', 'too', 'very', 'just', 'now'
