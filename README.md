@@ -1,9 +1,9 @@
 # PDF Text Extractor - Streamlit Web App
 
-[web app](https://pdfextractor-efdvjpyeyqgeemtnzwqbvw.streamlit.app/)
+[Rebecca's PDF Extractor is live now!!](https://pdfextractor-efdvjpyeyqgeemtnzwqbvw.streamlit.app/)
 
 
-A fully functional Streamlit web application for extracting text from PDF files using pdfplumber. No OCR required!
+A fully functional Streamlit web application for extracting text from PDF files using pdfplumber. 
 
 ## Features
 
@@ -14,27 +14,6 @@ A fully functional Streamlit web application for extracting text from PDF files 
 - 💾 **Download Functionality** - Download extracted text as a .txt file
 - 📊 **Text Statistics** - Optional word count, character count, page count, and top 10 word frequency analysis
 - ⚠️ **Error Handling** - Comprehensive error messages and warnings
-
-## Installation
-
-1. **Install Python** (if not already installed)
-   - Python 3.8 or higher is required
-
-2. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Running the Application
-
-1. **Start the Streamlit app**
-   ```bash
-   streamlit run app.py
-   ```
-
-2. **Access the app**
-   - The app will automatically open in your default web browser
-   - If it doesn't, navigate to: `http://localhost:8501`
 
 ## Usage Instructions
 
@@ -82,16 +61,10 @@ The app handles various error scenarios:
 - Empty extraction results
 - Pages with no extractable text
 
-## Requirements
-
-- Python 3.8+
-- streamlit >= 1.28.0
-- pdfplumber >= 0.10.0
-- pandas >= 2.0.0
 
 ## Notes
 
-- This app uses **pdfplumber** which extracts text from PDFs that contain text layers
+- This app uses pdfplumber which extracts text from PDFs that contain text layers
 - **Scanned PDFs** (image-based) will not work as they require OCR
 - If a PDF appears to have no extractable text, a warning will be displayed
 - Pages with no text are skipped with a warning message
@@ -107,11 +80,5 @@ The app handles various error scenarios:
 - Try a different PDF file to verify the app is working
 - Check the error message for specific details
 
-**Port already in use:**
-- Streamlit uses port 8501 by default
-- If occupied, use: `streamlit run app.py --server.port 8502`
 
-## License
-
-This project is open source and available for use.
 
